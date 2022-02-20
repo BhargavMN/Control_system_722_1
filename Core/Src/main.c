@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
 #include "tim.h"
 #include "usart.h"
 #include "usb_otg.h"
@@ -26,7 +27,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include<stdio.h>
+#include "lcd_i2c.h"
+#include <stdbool.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +50,9 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+int16_t count;
+struct lcd_disp disp;
+
 float U_tmp;
 float U, Y, E;
 
@@ -108,6 +114,7 @@ int main(void)
   MX_TIM4_Init();
   MX_TIM2_Init();
   MX_TIM5_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
 	//usart
@@ -132,12 +139,33 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim5);
 	__HAL_TIM_SET_PRESCALER(&htim5,new_prescaler);
 
+
+	//LCD
+
+	  disp.addr = (0x3F << 1);
+	  disp.bl = true;
+	  lcd_init(&disp);
+	  sprintf((char *)disp.f_line, "To 1. linia");
+	  sprintf((char *)disp.s_line, "a to druga linia");
+	  lcd_display(&disp);
+
+	  char LCDdisplay1[17];
+	  char LCDdisplay2[17];
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
+		sprintf(LCDdisplay1, "U: %d rpm",(int)(U*60));
+		sprintf(LCDdisplay2, "Y: %d rpm",(int)(Y*60));
+
+		sprintf((char *)disp.f_line, LCDdisplay1);
+		sprintf((char *)disp.s_line, LCDdisplay2);
+
+		lcd_display(&disp);
+
+		HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -196,8 +224,10 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_CLK48;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_I2C1
+                              |RCC_PERIPHCLK_CLK48;
   PeriphClkInitStruct.Usart3ClockSelection = RCC_USART3CLKSOURCE_PCLK1;
+  PeriphClkInitStruct.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
   PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48SOURCE_PLL;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
@@ -245,27 +275,25 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
 int new_duty;
 uint32_t encoder_coutner = 0;
-int16_t count;
+//int16_t count;
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 	encoder_coutner=__HAL_TIM_GET_COUNTER(htim);
 	count=((int16_t)encoder_coutner)/4;
 
 
-	if (count>10){
-		count=10;
+	if (count>30){
+		count=30;
 		encoder_coutner=(uint32_t)(4*count);
 		__HAL_TIM_SET_COUNTER(htim,encoder_coutner);
-	}else if(count<-10){
-		count=-10;
+	}else if(count<-30){
+		count=-30;
 		encoder_coutner=(0xFFFFFFFF+4*count);
 		__HAL_TIM_SET_COUNTER(htim,encoder_coutner);
 
 	}
 
-	new_duty = 50+count*5;
-	__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1,new_duty);
-	HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-
+////	U_tmp+=count;
+//		U_tmp=10;
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 	if(huart->Instance == USART3){
@@ -287,6 +315,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 					val0 = (int)(buff[1]-'0');
 					val1 = (int)(buff[2]-'0');
 					U_tmp=val0*10+val1;
+					count=0;   ////////////////////// count test
 					break;
 				}
 		}
@@ -301,7 +330,7 @@ float D;
 
 #if 1
 /////////////////////////////////////////////////////////////////////////
-//      PID  controller////////////////////////////////////////////////////////////
+//      PID  ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////
 float k_E=20;
 float k_I=3;
@@ -311,7 +340,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		rot_freq=out_frequency;
 		total_time+=1/((float)sampling_freq);
 		Y=rot_freq;
-		U=U_tmp;
+		U=U_tmp+count;
 
 		E=U-Y;
 
