@@ -61,6 +61,29 @@ float U, Y, E;
 char buff[64];
 int sampling_freq = 10;
 float total_time;
+
+
+float k_E=20;
+float k_I=3;
+float k_D = 1000;
+
+int timer_val;
+int time_elapsed;
+
+float frequency;
+float old_frequency;
+float ratio_frequency=3;
+
+float out_frequency; //output
+
+float rot_freq;
+float Duty_test, Duty_test_P, Duty_test_I,Duty_test_D;
+float prev_E, prev_I;
+float I;
+float D;
+
+int new_duty;
+uint32_t encoder_coutner = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,6 +94,13 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/*****************************************************************************************************
+/* @brief
+/* @author  Wojciech Piersiala
+/* @version V1.0
+/* @date    17-Feb-2022
+
+/*****************************************************************************************************/
 int _write(int file, char *ptr, int len)
 {
 	int i=0;
@@ -145,9 +175,9 @@ int main(void)
 	  disp.addr = (0x3F << 1);
 	  disp.bl = true;
 	  lcd_init(&disp);
-	  sprintf((char *)disp.f_line, "To 1. linia");
-	  sprintf((char *)disp.s_line, "a to druga linia");
-	  lcd_display(&disp);
+//	  sprintf((char *)disp.f_line, "To 1. linia");
+//	  sprintf((char *)disp.s_line, "a to druga linia");
+//	  lcd_display(&disp);
 
 	  char LCDdisplay1[17];
 	  char LCDdisplay2[17];
@@ -236,15 +266,16 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-int timer_val;
-int time_elapsed;
 
-float frequency;
-float old_frequency;
-float ratio_frequency=3;
+/*****************************************************************************************************
+/* @brief  GPIO external interupr callback (Implements interaface with IR sensor)
+/* @author  Wojciech Piersiala
+/* @param[in] GPIO_Pin GPIO Pin handler
+/* @return None
+/* @version V1.0
+/* @date    17-Feb-2022
 
-float out_frequency; //output
-
+/*****************************************************************************************************/
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if(GPIO_Pin == USER_Btn_Pin){
 		HAL_GPIO_TogglePin(DC1_GPIO_Port, DC1_Pin);
@@ -273,9 +304,16 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 }
 
 
-int new_duty;
-uint32_t encoder_coutner = 0;
+
 //int16_t count;
+/*****************************************************************************************************
+/* @brief  Timer IC callback(implements interface with rotary encoder)
+/* @author  Wojciech Piersiala
+/* @param[in] htim TIM handler
+/* @return None/* @version V1.0
+/* @date    17-Feb-2022
+
+/*****************************************************************************************************/
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 	encoder_coutner=__HAL_TIM_GET_COUNTER(htim);
 	count=((int16_t)encoder_coutner)/4;
@@ -295,32 +333,41 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 ////	U_tmp+=count;
 //		U_tmp=10;
 }
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	if(huart->Instance == USART3){
-		HAL_UART_Receive_IT(&huart3, buff, 3);
-		char inx0 =buff[0];
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+//	if(huart->Instance == USART3){
+//		HAL_UART_Receive_IT(&huart3, buff, 3);
+//		char inx0 =buff[0];
+//
+//		switch(inx0){
+//		case ('S'):{
+//			int val0, val1, new_duty;
+//			val0 = (int)(buff[1]-'0');
+//			val1 = (int)(buff[2]-'0');
+//			new_duty=(val0*10+val1)*100;
+//			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1,new_duty);
+//
+//			break;
+//		}
+//		case ('U'):{
+//					int val0, val1, new_duty;
+//					val0 = (int)(buff[1]-'0');
+//					val1 = (int)(buff[2]-'0');
+//					U_tmp=val0*10+val1;
+//					count=0;   ////////////////////// count test
+//					break;
+//				}
+//		}
+//	}
+//}
+/*****************************************************************************************************
+/* @brief   UART Callback(Serail communication interface to read and write the values)
+/* @author  Bhargav Malasani
+/* @param[in] huart huart handler
+/* @return None
+/* @version V2.0
+/* @date    20-Feb-2022
 
-		switch(inx0){
-		case ('S'):{
-			int val0, val1, new_duty;
-			val0 = (int)(buff[1]-'0');
-			val1 = (int)(buff[2]-'0');
-			new_duty=(val0*10+val1)*100;
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1,new_duty);
-
-			break;
-		}
-		case ('U'):{
-					int val0, val1, new_duty;
-					val0 = (int)(buff[1]-'0');
-					val1 = (int)(buff[2]-'0');
-					U_tmp=val0*10+val1;
-					count=0;   ////////////////////// count test
-					break;
-				}
-		}
-	}
-}
+/*****************************************************************************************************/
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART3){
@@ -364,19 +411,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			HAL_UART_Transmit( &huart3,msg_LED_status,status_len, 100);
 }
 
-float rot_freq;
-float Duty_test, Duty_test_P, Duty_test_I,Duty_test_D;
-float prev_E, prev_I;
-float I;
-float D;
+
 
 #if 1
-/////////////////////////////////////////////////////////////////////////
-//      PID  ////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////
-float k_E=20;
-float k_I=3;
-float k_D = 1000;
+
+/*****************************************************************************************************
+/* @brief  Time Callback (implements PID controll)
+/* @author  Wojciech Piersiala
+/* @version V1.0
+/* @date    18-Feb-2022
+
+/**************************************************************************************************/
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance==TIM5){
 		rot_freq=out_frequency;
@@ -386,17 +431,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 		E=U-Y;
 
-	//I
-
+//I
 		I = prev_I+ E+prev_E;
 		Duty_test_I=I*k_I;
 		if(Duty_test_I<1){Duty_test_I=1;}if(Duty_test_I>MAX_DUTY){Duty_test_I=MAX_DUTY; I=MAX_DUTY/k_I;}
 
-
-//		P
+//P
 		Duty_test_P=E*k_E;
 		if(Duty_test_P<1){Duty_test_P=1;}if(Duty_test_P>MAX_DUTY){Duty_test_P=MAX_DUTY;}
-
 
 //D
 		D = (E-prev_E);
