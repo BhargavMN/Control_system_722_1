@@ -85,6 +85,7 @@ float D;
 int new_duty;
 
 char msg_[64];
+int status_len;
 
 uint32_t encoder_coutner = 0;
 /* USER CODE END PV */
@@ -382,6 +383,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 			if(strncmp(buff,'SETD',4)==0)
 			{
+
+				int val0, val1, new_duty;
 				val0 = (int)(buff[4]-'0');
 				val1 = (int)(buff[5]-'0');
 				new_duty=(val0*10+val1)*100;
