@@ -420,18 +420,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					}
 			HAL_UART_Transmit( &huart3,msg_,status_len, 100);
 }
-
+}
 
 
 #if 1
 
 /*****************************************************************************************************
-/* @brief  Time Callback (implements PID controll)
-/* @author  Wojciech Piersiala
-/* @param[in] htim tim handler
-/* @return None
-/* @version V1.0
-/* @date    18-Feb-2022
+ @brief  Time Callback (implements PID controll)
+ @author  Wojciech Piersiala
+ @param[in] htim tim handler
+ @return None
+ @version V1.0
+ @date    18-Feb-2022
 
 /**************************************************************************************************/
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
