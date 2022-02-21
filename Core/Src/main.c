@@ -315,13 +315,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
 //int16_t count;
 /*****************************************************************************************************
-/* @brief  Timer IC callback(implements interface with rotary encoder)
-/* @author  Wojciech Piersiala
-/* @param[in] htim TIM handler
-/* @return None/* @version V1.0
-/* @date    17-Feb-2022
+ @brief  Timer IC callback(implements interface with rotary encoder)
+ @author  Wojciech Piersiala
+ @param[in] htim TIM handler
+ @return None/* @version V1.0
+ @date    17-Feb-2022
 
-/*****************************************************************************************************/
+*****************************************************************************************************/
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 	encoder_coutner=__HAL_TIM_GET_COUNTER(htim);
 	count=((int16_t)encoder_coutner)/4;
@@ -395,8 +395,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 				if(strncmp(buff,'SETU',4)==0)
 				{
 					int val0, val1, new_duty;
-					val0 = (int)(buff[1]-'0');
-					val1 = (int)(buff[2]-'0');
+					val0 = (int)(buff[4]-'0');
+					val1 = (int)(buff[5]-'0');
 					U_tmp=val0*10+val1;
 					count=0;   ////////////////////// count test
 					status_len=sprintf(msg_,"Refernce value has been Set");
