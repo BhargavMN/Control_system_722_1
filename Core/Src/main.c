@@ -83,6 +83,9 @@ float I;
 float D;
 
 int new_duty;
+
+char msg_[64];
+
 uint32_t encoder_coutner = 0;
 /* USER CODE END PV */
 
@@ -95,8 +98,12 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 /*****************************************************************************************************
-/* @brief
+/* @brief configures printf for debugging
 /* @author  Wojciech Piersiala
+/* @param[in] file huart handler
+/* @param[in] *ptr huart handler
+/* @param[in] len huart handler
+/* @return len
 /* @version V1.0
 /* @date    17-Feb-2022
 
@@ -360,12 +367,12 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 //	}
 //}
 /*****************************************************************************************************
-/* @brief   UART Callback(Serail communication interface to read and write the values)
-/* @author  Bhargav Malasani
-/* @param[in] huart huart handler
-/* @return None
-/* @version V2.0
-/* @date    20-Feb-2022
+ @brief   UART Callback(Serail communication interface to read and write the values)
+ @author  Bhargav Malasani
+ @param[in] huart huart handler
+ @return None
+ @version V2.0
+ @date    20-Feb-2022
 
 /*****************************************************************************************************/
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
@@ -408,7 +415,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 					{
 						status_len=sprintf(msg_,"Error: %d \r\n",E);
 					}
-			HAL_UART_Transmit( &huart3,msg_LED_status,status_len, 100);
+			HAL_UART_Transmit( &huart3,msg_,status_len, 100);
 }
 
 
@@ -418,6 +425,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 /*****************************************************************************************************
 /* @brief  Time Callback (implements PID controll)
 /* @author  Wojciech Piersiala
+/* @param[in] htim tim handler
+/* @return None
 /* @version V1.0
 /* @date    18-Feb-2022
 
