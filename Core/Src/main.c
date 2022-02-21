@@ -391,7 +391,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 
 			if(buff[2]=='E'){
 
-						len2=sprintf(USARTdisp3, "E: %d rpm \n\r",(int)(E)*60);}
+						len2=sprintf(USARTdisp3, "E: %d rpm \n\r",(int)((E)*60));}
 
 			HAL_UART_Transmit(&huart3, &USARTdisp3, len2, 100);
 			break;
