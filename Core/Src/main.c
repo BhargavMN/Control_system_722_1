@@ -279,7 +279,7 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /*****************************************************************************************************
-/* @brief  GPIO external interupr callback (Implements interaface with IR sensor)
+/* @brief  GPIO external interupr callback (Implements interaface with IR sensor and polarity change using USER_Btn)
 /* @author  Wojciech Piersiala
 /* @param[in] GPIO_Pin GPIO Pin handler
 /* @return None
@@ -470,7 +470,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1,Duty_test);
 	}
-	//	printf("%f %f\n\r",total_time,rot_freq);
+
 }
 
 /* USER CODE END 4 */
