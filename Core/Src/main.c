@@ -321,6 +321,48 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 		}
 	}
 }
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART3){
+			HAL_UART_Receive_IT(&huart3, buff, 3);
+
+			if(strncmp(buff,'SETD',4)==0)
+			{
+				val0 = (int)(buff[4]-'0');
+				val1 = (int)(buff[5]-'0');
+				new_duty=(val0*10+val1)*100;
+				__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1,new_duty);
+				status_len=sprintf(msg_,"Duty has been Set");
+			}
+			else
+				if(strncmp(buff,'SETU',4)==0)
+				{
+					int val0, val1, new_duty;
+					val0 = (int)(buff[1]-'0');
+					val1 = (int)(buff[2]-'0');
+					U_tmp=val0*10+val1;
+					count=0;   ////////////////////// count test
+					status_len=sprintf(msg_,"Refernce value has been Set");
+				}
+				else
+					if(strncmp(buff,'READ:U',6)==0)
+				{
+
+						status_len=sprintf(msg_,"Refernce Value: %d RPM\r\n",(U*60));
+				}
+				else
+					if(strncmp(buff,'READ:Y',6)==0)
+					{
+
+						status_len=sprintf(msg_,"Speed: %d RPM\r\n",(Y*60));
+					}
+					else
+					if(strncmp(buff,'READ:E',6)==0)
+					{
+						status_len=sprintf(msg_,"Error: %d \r\n",E);
+					}
+			HAL_UART_Transmit( &huart3,msg_LED_status,status_len, 100);
+}
 
 float rot_freq;
 float Duty_test, Duty_test_P, Duty_test_I,Duty_test_D;
