@@ -87,7 +87,7 @@ int new_duty;
 char msg_[32];
 int status_len;
 
-uint32_t encoder_coutner = 0;
+uint32_t encoder_counter = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,9 +101,9 @@ void SystemClock_Config(void);
 /*****************************************************************************************************
 /* @brief configures printf for debugging
 /* @author  Wojciech Piersiala
-/* @param[in] file huart handler
-/* @param[in] *ptr huart handler
-/* @param[in] len huart handler
+/* @param[in] file
+/* @param[in] *ptr
+/* @param[in] len
 /* @return len
 /* @version V1.0
 /* @date    17-Feb-2022
@@ -183,9 +183,7 @@ int main(void)
 	disp.addr = (0x3F << 1);
 	disp.bl = true;
 	lcd_init(&disp);
-	//	  sprintf((char *)disp.f_line, "To 1. linia");
-	//	  sprintf((char *)disp.s_line, "a to druga linia");
-	//	  lcd_display(&disp);
+
 
 	char LCDdisplay1[17];
 	char LCDdisplay2[17];
@@ -318,7 +316,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
 
 
-//int16_t count;
+
 /*****************************************************************************************************
  @brief  Timer IC callback(implements interface with rotary encoder)
  @author  Wojciech Piersiala
@@ -328,23 +326,22 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 
  *****************************************************************************************************/
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
-	encoder_coutner=__HAL_TIM_GET_COUNTER(htim);
-	count=((int16_t)encoder_coutner)/4;
+	encoder_counter=__HAL_TIM_GET_COUNTER(htim);
+	count=((int16_t)encoder_counter)/4;
 
 
 	if (count>30){
 		count=30;
-		encoder_coutner=(uint32_t)(4*count);
-		__HAL_TIM_SET_COUNTER(htim,encoder_coutner);
+		encoder_counter=(uint32_t)(4*count);
+		__HAL_TIM_SET_COUNTER(htim,encoder_counter);
 	}else if(count<-30){
 		count=-30;
-		encoder_coutner=(0xFFFFFFFF+4*count);
-		__HAL_TIM_SET_COUNTER(htim,encoder_coutner);
+		encoder_counter=(0xFFFFFFFF+4*count);
+		__HAL_TIM_SET_COUNTER(htim,encoder_counter);
 
 	}
 
-	////	U_tmp+=count;
-	//		U_tmp=10;
+
 }
 /*****************************************************************************************************
  @brief   UART Callback(Serail communication interface to read and write the values)
@@ -375,7 +372,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 			val0 = (int)(buff[1]-'0');
 			val1 = (int)(buff[2]-'0');
 			U_tmp=val0*10+val1;
-			count=0;   ////////////////////// count test
+			count=0;   // count test
 			break;
 		}
 		case ('R'):{
@@ -402,7 +399,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 
 
 
-#if 1
+
 
 /*****************************************************************************************************
  @brief  Time Callback (implements PID controll)
@@ -428,29 +425,54 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 		//I
 		I = prev_I+ E+prev_E;
 		Duty_test_I=I*k_I;
-		if(Duty_test_I<1){Duty_test_I=1;}if(Duty_test_I>MAX_DUTY){Duty_test_I=MAX_DUTY; I=MAX_DUTY/k_I;}
+		if(Duty_test_I<1){
+			Duty_test_I=1;
+		}
+		else
+			if(Duty_test_I>MAX_DUTY){
+				Duty_test_I=MAX_DUTY;
+				I=MAX_DUTY/k_I;
+			}
 
 		//P
 		Duty_test_P=E*k_E;
-		if(Duty_test_P<1){Duty_test_P=1;}if(Duty_test_P>MAX_DUTY){Duty_test_P=MAX_DUTY;}
+		if(Duty_test_P<1){
+			Duty_test_P=1;
+		}
+		else
+			if(Duty_test_P>MAX_DUTY){
+				Duty_test_P=MAX_DUTY;
+			}
 
 		//D
 		D = (E-prev_E);
 		Duty_test_D=k_D*D;
-		if(Duty_test_D<-900){Duty_test_D=-900;}if(Duty_test_D>MAX_DUTY){Duty_test_D=MAX_DUTY;}
+		if(Duty_test_D<-900){
+			Duty_test_D=-900;
+		}
+		else
+			if(Duty_test_D>MAX_DUTY){
+				Duty_test_D=MAX_DUTY;
+			}
 
 		Duty_test=(int)(Duty_test_P+Duty_test_I+Duty_test_D);
 
 		prev_E=E;
 		prev_I=I;
 
-		if(Duty_test<1){Duty_test=1;}if(Duty_test>MAX_DUTY){Duty_test=MAX_DUTY;}
+		if(Duty_test<1){
+			Duty_test=1;
+		}
+		else
+			if(Duty_test>MAX_DUTY){
+				Duty_test=MAX_DUTY;
+			}
 
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1,Duty_test);
 	}
 	//	printf("%f %f\n\r",total_time,rot_freq);
 }
-#endif
+
 /* USER CODE END 4 */
 
 /**
