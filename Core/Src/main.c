@@ -369,7 +369,7 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 //}
 /*****************************************************************************************************
  @brief   UART Callback(Serail communication interface to read and write the values)
- @author  Bhargav Malasani
+ @author  Bhargav Malasani,Wojciech Piersiala
  @param[in] huart huart handler
  @return None
  @version V2.0
